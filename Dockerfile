@@ -25,8 +25,6 @@ EXPOSE 80
 # The default command to run when starting the container
 CMD ["apache2-foreground"]
 
-# Set file permissions
-RUN chown -R www-data:www-data /var/www/html
-RUN chmod -R 755 /var/www/html
+
 
 
