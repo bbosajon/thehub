@@ -11,7 +11,7 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 # COPY ./path-to-your-php-config.ini /usr/local/etc/php/conf.d/
 
 # Set the working directory inside the container
-WORKDIR /thehub
+WORKDIR /var/www/html
 
 # Copy the PHP website files into the container
 COPY . .
@@ -24,5 +24,9 @@ EXPOSE 80
 
 # The default command to run when starting the container
 CMD ["apache2-foreground"]
+
+# Set file permissions
+RUN chown -R www-data:www-data /var/www/html
+RUN chmod -R 755 /var/www/html
 
 
