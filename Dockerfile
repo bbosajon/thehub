@@ -1,17 +1,27 @@
-# Use an official PHP runtime as a parent image
-FROM php:8.1-apache
+# Use an official Ubuntu base image
+FROM ubuntu:22.04
 
-# Set the working directory in the container
-WORKDIR /var/www/html
+# Set environment variables
+ENV DEBIAN_FRONTEND=noninteractive
 
-# Copy the PHP source code into the container
-COPY . .
+# Update and install necessary packages
+RUN apt-get update && \
+    apt-get install -y wget gnupg2 lsb-release
 
-# Install any PHP extensions you need
-RUN docker-php-ext-install mysqli pdo pdo_mysql
+# Install OpenLiteSpeed
+RUN wget -O - https://rpms.litespeedtech.com/centos/RPM-GPG-KEY-LiteSpeed | apt-key add - && \
+    echo "deb http://rpms.litespeedtech.com/ubuntu/ focal main" > /etc/apt/sources.list.d/litespeed.list && \
+    apt-get update && \
+    apt-get install -y openlitespeed
 
-# Expose port 80 to the outside world
-EXPOSE 80
+# Install PHP (example: PHP 7.4)
+RUN apt-get install -y lsphp74 lsphp74-mysql lsphp74-xml lsphp74-mbstring
 
-# Define the command to run the Apache server
-CMD ["apache2-foreground"]
+# Copy your application files to the container (optional)
+# COPY /path/to/your/app /usr/local/lsws/Example/
+
+# Expose ports for OpenLiteSpeed
+EXPOSE 80 443
+
+# Start OpenLiteSpeed server
+CMD ["/usr/local/lsws/bin/lswsctrl", "start"] && tail -f /usr/local/lsws/logs/error.log
