@@ -1,0 +1,14 @@
+{
+    "name": "PHP Development",
+    "dockerFile": "Dockerfile",
+    "context": ".",
+    "postCreateCommand": "composer install",
+    "settings": {
+        "terminal.integrated.shell.linux": "/bin/bash"
+    },
+    "extensions": [
+        "felipeochoa.vscode-php-intellisense",
+        "bmewburn.vscode-intelephense-client",
+        "esbenp.prettier-vscode"
+    ]
+}
