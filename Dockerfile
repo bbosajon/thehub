@@ -11,7 +11,7 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 # COPY ./path-to-your-php-config.ini /usr/local/etc/php/conf.d/
 
 # Set the working directory inside the container
-# WORKDIR /var/www/html
+WORKDIR /var/www/html
 
 # Copy the PHP website files into the container
 COPY . .
