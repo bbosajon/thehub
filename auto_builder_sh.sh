@@ -3,7 +3,8 @@ rm storage/install.zip
 rm storage/update.zip
 rsync -av --exclude '.env' --exclude 'auto_builder.sh' --exclude 'vendor/' --exclude '.git/' --exclude '.idea/' ./ ./package
 
-cd package
+cd package 
+composer install
 composer update
 cp .env.example .env
 php artisan key:generate
