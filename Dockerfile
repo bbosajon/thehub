@@ -1,5 +1,5 @@
-# Use an official PHP runtime as a parent image
-FROM php:8.2-fpm
+# Stage 1: Build the application
+FROM php:8.2-fpm AS build
 
 # Install system dependencies and PHP extensions
 RUN apt-get update && apt-get install -y \
@@ -7,32 +7,42 @@ RUN apt-get update && apt-get install -y \
     libjpeg-dev \
     libfreetype6-dev \
     libzip-dev \
+    libonig-dev \
+    libxml2-dev \
     unzip \
     git \
-    libicu-dev \
-    libmariadb-dev \
-    && rm -rf /var/lib/apt/lists/* \
+    curl \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install gd pdo pdo_mysql zip intl mysqli
+    && docker-php-ext-install gd zip pdo pdo_mysql \
+    && pecl install xdebug \
+    && docker-php-ext-enable xdebug
 
 # Set working directory
-WORKDIR /var/www
+WORKDIR /var/www/html
 
-# Copy the application files into the container
-COPY . /var/www
+# Copy the application code
+COPY . .
 
-# Install Composer (as a separate step to leverage Docker cache)
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+# Install Composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-# Install Laravel dependencies
-RUN composer install --optimize-autoloader --no-dev
+# Install PHP dependencies
+RUN composer install --no-dev --optimize-autoloader
 
-# Set file permissions for Laravel storage and cache directories
-RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
+# Stage 2: Set up Nginx and finalize image
+FROM nginx:alpine
 
-# Expose port 9000 for PHP-FPM
-EXPOSE 9000
+# Copy Nginx configuration
+COPY ./nginx/default.conf /etc/nginx/conf.d/default.conf
 
-# Start PHP-FPM server
-CMD ["php-fpm"]
+# Copy application code from build stage
+COPY --from=build /var/www/html /var/www/html
 
+# Set the working directory to the public directory
+WORKDIR /var/www/html/public
+
+# Expose port 80
+EXPOSE 80
+
+# Start Nginx
+CMD ["nginx", "-g", "daemon off;"]
