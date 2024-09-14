@@ -1,5 +1,5 @@
-# Use the official PHP image with Apache
-FROM php:8.1-apache
+# Use an official PHP runtime with Apache as a parent image
+FROM php:8.2-apache
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -7,34 +7,38 @@ RUN apt-get update && apt-get install -y \
     libjpeg-dev \
     libfreetype6-dev \
     libzip-dev \
+    libonig-dev \
+    libicu-dev \
+    git \
     unzip \
-    && docker-php-ext-configure gd \
-        --with-freetype \
-        --with-jpeg \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install gd \
-    && docker-php-ext-install zip
+    && docker-php-ext-install intl \
+    && docker-php-ext-install mysqli \
+    && docker-php-ext-install pdo pdo_mysql \
+    && docker-php-ext-install zip \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
-# Enable Apache mod_rewrite
-RUN a2enmod rewrite
-
-# Set the working directory inside the container
+# Set working directory
 WORKDIR /var/www/html
 
-# Copy application files to the container
-COPY . .
+# Copy composer.lock and composer.json
+COPY composer.lock composer.json /var/www/html/
 
-# Install Composer (PHP package manager)
+# Install Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 # Install PHP dependencies
-RUN composer install
+RUN composer install --no-autoloader --no-scripts
 
-# Expose port 80 (default HTTP port)
+# Copy the application code
+COPY . /var/www/html
+
+# Generate the optimized autoloader
+RUN composer dump-autoload --optimize
+
+# Expose port 80
 EXPOSE 80
 
-# Configure Apache to listen on all interfaces and dynamically on the Railway Cloud port
-RUN sed -i 's/Listen 80/Listen 0.0.0.0:80/' /etc/apache2/ports.conf
-RUN sed -i 's/VirtualHost \*:80/VirtualHost \*:80/' /etc/apache2/sites-available/000-default.conf
-
-# Set the entrypoint command
-CMD ["apache2-foreground"]
+# Apache will start automatically
