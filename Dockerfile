@@ -21,10 +21,10 @@ unzip \
 && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
-WORKDIR /var/www/thehub
+WORKDIR /thehub
 
 # Copy composer.lock and composer.json
-COPY composer.lock composer.json /var/www/html/
+COPY composer.lock composer.json /thehub/
 
 # Install Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
@@ -33,7 +33,7 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 RUN composer install --no-autoloader --no-scripts
 
 # Copy the application code
-COPY . /var/www/html
+COPY . /thehub
 
 # Generate the optimized autoloader
 RUN composer dump-autoload --optimize
