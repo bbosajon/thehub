@@ -21,7 +21,7 @@ unzip \
 && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
-WORKDIR /var/www/html
+WORKDIR /var/www/thehub
 
 # Copy composer.lock and composer.json
 COPY composer.lock composer.json /var/www/html/
